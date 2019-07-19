@@ -29,23 +29,23 @@ var friendAdded = mongoose.model('friendAdded', friendAddedschema);
 
 app.post('/friendAdded', function (req, res) {
     console.log("yahahahaa friend addede me");
-    console.log(req.body);
+   
     var myDataFriends = friendAdded({
-        usercontact: 1234,
+        usercontact: req.body.contact,
         friendName: req.body.friendName,
         friendContact:req.body.friendContact
     });
-    // console.log(contact);
+    console.log(myDataFriends.usercontact);
     console.log("friendname");
     console.log(myDataFriends.friendName);
     // console.log(friendContact);
     db.collection('usersignups').update( {'contact':myDataFriends.usercontact},{ $push: { 'friends': myDataFriends } },function(err,c){
-        console.log(c);
+        // console.log(c);
         console.log("****************************");
         res.send(
             {
                 "tag": "All rights are reserved by Aayushi",
-                "code": "503",
+                "code": "200",
                 "data": "Failed"
             }
         );
@@ -145,13 +145,36 @@ console.log(req);
     });
 });
 
+//--------------------------------------------Get list of friends added-------------------------------------------
 
+var getfriendSchema = new mongoose.Schema({
+    getContactFriend: { type: String, required: true },
+});
+
+var getfriend = mongoose.model('getfriend', getfriendSchema);
+
+app.post('/getfriends',function(req,res){
+    console.log("request-------------------------------------------------------");
+    console.log(req.body.rr);
+// res.send("ok");
+    // console.log(getContactFriend);
+    // console.log(req.body);
+    db.collection('usersignups').findOne({contact:req.body.rr},function(err,filess){
+        if(err){
+            res.send('errors1');
+            console.log("error hai")
+        }
+        // console.log(filess.friends);
+        res.json(filess);
+    });
+})
 
 io.sockets.on('connection', function(socket) {
     // We're connected to someone now. Let's listen for events from them
-
+   var roomNaam;
     users=[];
-
+    var x;
+    var y;
     // socket.on('setUsername', function(data) {
     //           console.log(data);
     //             if(users.indexOf(data) > -1) {
@@ -164,21 +187,34 @@ io.sockets.on('connection', function(socket) {
     //           }
     //        });
 
-//    socket.on('addToRoom', function(roomName) {
-//        console.log(roomName);
-//     socket.join(roomName);
-    socket.on('msg', function(data) {
+   socket.on('addToRoom', function(roomName) {
+    roomNaam=roomName;
+       console.log(roomName);
+    socket.join(roomName);
+    x= roomName.slice(0,10);
+   
+    console.log(x);
+     y = roomName.slice(10,20);
+    console.log(y);
+    console.log(x+y);
+    // socket.to('game1').to('game2').emit('nice game', "let's play a game (too)");
+     // io.sockets.in("CS").emit("WELCOME CS BRANCH");
+    console.log("hdsfc");
+});
+
+socket.on('typing',function(data){
+socket.broadcast.emit('typing',data)
+});
+  socket.on('msg', function(data) {
         //Send message to everyone
         console.log("phle kaha kaha??");
-        // io.sockets.in(roomName).emit('newmsg', data);
-        io.sockets.emit('newmsg',data);
+        console.log(x+y);
+        console.log(y+x);
+        io.sockets.to(x+y).to(y+x).emit('newmsg', data);
+        // io.sockets.in(roomNaam).emit('newmsg', data);
+        // io.sockets.emit('newmsg',data);
         console.log("bas ho gya")
-     })
-
-    // io.sockets.in("CS").emit("WELCOME CS BRANCH");
-    console.log("hdsfc");
-// });
-
+     });
 //     socket.on('setUsername', function(data) {
 //         // We've received some data. Let's just log it
 //         console.log("kya hai>>>>");
