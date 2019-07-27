@@ -169,7 +169,9 @@ app.post('/getfriends',function(req,res){
     });
 })
 
-io.sockets.on('connection', function(socket) {
+io.on('connection', function(socket) {
+    console.log("connecion");
+    console.log(socket);
     // We're connected to someone now. Let's listen for events from them
    var roomNaam;
     users=[];
@@ -203,8 +205,25 @@ io.sockets.on('connection', function(socket) {
 });
 
 socket.on('typing',function(data){
-socket.broadcast.emit('typing',data)
+    console.log(data);  
+    console.log("server side typing");
+    // console.log(x+y);
+    console.log(y+x);
+    socket.emit('showtyping', data);
+    // io.sockets.to(x+y).to(y+x).emit('showtyping', data);
+    // socket.emit('showtyping',data);
 });
+socket.on('Stoptyping',function(data){
+    console.log(data);  
+    console.log("server side stoptyping");
+    // console.log(x+y);
+    console.log(y+x);
+    socket.emit('hidetyping', data);
+    // io.sockets.to(x+y).to(y+x).emit('showtyping', data);
+    // socket.emit('showtyping',data);
+});
+
+
   socket.on('msg', function(data) {
         //Send message to everyone
         console.log("phle kaha kaha??");
@@ -229,6 +248,10 @@ socket.broadcast.emit('typing',data)
 //         // Now let's reply
 //         socket.emit('event', {some: "data"});
 // });
+
+socket.on('disconnect', function() {
+    console.log('Client disconnected.');
+});
 });
 
 http.listen(3000, function() {
