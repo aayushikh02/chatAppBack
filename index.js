@@ -15,9 +15,11 @@ var url = 'mongodb://localhost:27017/chatBack';
 mongoose.connect((url), { useNewUrlParser: true });
 var db = mongoose.connection;
 
+// import schema
+const schema = require("./loginSchema");
+const userLogin = schema.userLogin;
 //----------------------------------------------Friends Added--------------------------------------------------
 
-friendAdded
 
 var friendAddedschema = new mongoose.Schema({
     usercontact: { type: String, required: true },
@@ -53,7 +55,7 @@ app.post('/friendAdded', function (req, res) {
   
 });
 
-//----------------------------------------------User SignUp--------------------------------------------------
+//----------------------------------------------User SignUp-----------------------------------------------------------
 
 var userSignUpschema = new mongoose.Schema({
     name: { type: String, required: true } ,
@@ -100,12 +102,12 @@ app.post('/userSignUp', function (req, res) {
 
 //-----------------------------------------------User Login-----------------------------------------------
 
-var userLoginSchema = new mongoose.Schema({
-    contact: { type: String, required: true },
-    password: { type: String, required: true }
-});
+// var userLoginSchema = new mongoose.Schema({
+//     contact: { type: String, required: true },
+//     password: { type: String, required: true }
+// });
 
-var userLogin = mongoose.model('userLogin', userLoginSchema);
+// var userLogin = mongoose.model('userLogin', userLoginSchema);
 
 
 app.post('/userLogin', function (req, res) {
@@ -129,7 +131,7 @@ console.log(req);
                 {
                     "tag": "All rights are reserved by Aayushi",
                     "code": "200",
-                    "data": "Success"
+                    "data": {"name":user.name,"status":"Success"},
                 }
             );
         } else {
@@ -154,7 +156,7 @@ var getfriendSchema = new mongoose.Schema({
 var getfriend = mongoose.model('getfriend', getfriendSchema);
 
 app.post('/getfriends',function(req,res){
-    console.log("request-------------------------------------------------------");
+    console.log("request---------------------------------------------------------------");
     console.log(req.body.rr);
 // res.send("ok");
     // console.log(getContactFriend);
@@ -171,7 +173,7 @@ app.post('/getfriends',function(req,res){
 
 io.on('connection', function(socket) {
     console.log("connecion");
-    console.log(socket);
+ 
     // We're connected to someone now. Let's listen for events from them
    var roomNaam;
     users=[];
@@ -191,7 +193,7 @@ io.on('connection', function(socket) {
 
    socket.on('addToRoom', function(roomName) {
     roomNaam=roomName;
-       console.log(roomName);
+    console.log(roomName);
     socket.join(roomName);
     x= roomName.slice(0,10);
    
@@ -209,8 +211,12 @@ socket.on('typing',function(data){
     console.log("server side typing");
     // console.log(x+y);
     console.log(y+x);
-    socket.emit('showtyping', data);
-    // io.sockets.to(x+y).to(y+x).emit('showtyping', data);
+    // socket.emit('showtyping', data);
+    // io.sockets.to(x+y).to(y+x).emit('newmsg', data);
+    // socket.broadcast.emit('showtyping',data)
+    io.sockets.to(y+x).to(x+y).emit('showtyping', data);
+    // socket.emit('hello', 'can you hear me?', 1, 2, 'abc');
+    // socket.to(x+y).emit('showtyping', data);
     // socket.emit('showtyping',data);
 });
 socket.on('Stoptyping',function(data){
