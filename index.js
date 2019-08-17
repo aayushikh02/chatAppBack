@@ -172,10 +172,13 @@ app.post('/getfriends',function(req,res){
 })
 
 io.on('connection', function(socket) {
+    console.log(socket.id);
+    // connectedUsers[USER_NAME_HERE] = socket;
     console.log("connecion");
- 
+    // socket.emit('socketID',socket.id);
     // We're connected to someone now. Let's listen for events from them
-   var roomNaam;
+   var roomNaamFriend;
+   var yourRoom;
     users=[];
     var x;
     var y;
@@ -191,69 +194,57 @@ io.on('connection', function(socket) {
     //           }
     //        });
 
-   socket.on('addToRoom', function(roomName) {
-    roomNaam=roomName;
-    console.log(roomName);
-    socket.join(roomName);
-    x= roomName.slice(0,10);
+   socket.on('addToRoom', function(data) {
+    roomNaamFriend= data.friendRoom;
+    yourRoom=data.yourRoom;
+    // roomNaam=roomName;
+    console.log("frined room---");
+    console.log(roomNaamFriend);
+    console.log("my room---");
+    console.log(yourRoom);
+    socket.join(yourRoom);
+    // x= roomName.slice(0,10);
    
-    console.log(x);
-     y = roomName.slice(10,20);
-    console.log(y);
-    console.log(x+y);
-    // socket.to('game1').to('game2').emit('nice game', "let's play a game (too)");
-     // io.sockets.in("CS").emit("WELCOME CS BRANCH");
-    console.log("hdsfc");
+    // console.log(x);
+    //  y = roomName.slice(10,20);
+    // console.log(y);
+    // console.log(x+y);
+
+     console.log("hdsfc");
+
 });
 
 socket.on('typing',function(data){
+    console.log(roomNaamFriend);
     console.log(data);  
     console.log("server side typing");
+
+    // console.log(y+x);
     // console.log(x+y);
-    console.log(y+x);
-    // socket.emit('showtyping', data);
-    // io.sockets.to(x+y).to(y+x).emit('newmsg', data);
-    // socket.broadcast.emit('showtyping',data)
-    io.sockets.to(y+x).to(x+y).emit('showtyping', data);
-    // socket.emit('hello', 'can you hear me?', 1, 2, 'abc');
-    // socket.to(x+y).emit('showtyping', data);
-    // socket.emit('showtyping',data);
+//    io.sockets.to(roomNaamFriend).to(yourRoom).emit('showtyping', data);
+io.sockets.in(roomNaamFriend).emit('showtyping',data);
+    // io.sockets.to(y+x).to(x+y).emit('showtyping', data);
+
 });
 socket.on('Stoptyping',function(data){
     console.log(data);  
+    // console.log(y+x);
+    // socket.emit('hidetyping', data);
+    io.sockets.in(roomNaamFriend).emit('hidetyping',data);
     console.log("server side stoptyping");
-    // console.log(x+y);
-    console.log(y+x);
-    socket.emit('hidetyping', data);
-    // io.sockets.to(x+y).to(y+x).emit('showtyping', data);
-    // socket.emit('showtyping',data);
+    
 });
 
 
   socket.on('msg', function(data) {
         //Send message to everyone
         console.log("phle kaha kaha??");
-        console.log(x+y);
-        console.log(y+x);
-        io.sockets.to(x+y).to(y+x).emit('newmsg', data);
-        // io.sockets.in(roomNaam).emit('newmsg', data);
-        // io.sockets.emit('newmsg',data);
+        console.log(roomNaamFriend);
+        console.log(yourRoom);
+        // io.sockets.to(x+y).to(y+x).emit('newmsg', data);
+        io.sockets.to(roomNaamFriend).to(yourRoom).emit('newmsg', data);
         console.log("bas ho gya")
      });
-//     socket.on('setUsername', function(data) {
-//         // We've received some data. Let's just log it
-//         console.log("kya hai>>>>");
-//         console.log(data);
-//         // Now let's reply
-//         socket.emit('event', {some: "data"});
-//     });
-//     socket.on('now', function(data) {
-//         // We've received some data. Let's just log it
-//         console.log(data);
-//         console.log("here in node.js")
-//         // Now let's reply
-//         socket.emit('event', {some: "data"});
-// });
 
 socket.on('disconnect', function() {
     console.log('Client disconnected.');
@@ -263,3 +254,7 @@ socket.on('disconnect', function() {
 http.listen(3000, function() {
     console.log('listening on *:3000');
  });
+
+
+
+
