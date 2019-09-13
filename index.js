@@ -2,19 +2,16 @@ var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
-
 //mongodb
 const cors = require("cors");
 app.use(cors());
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
 var mongoose = require('mongoose');
 var url = 'mongodb://localhost:27017/chatBack';
 mongoose.connect((url), { useNewUrlParser: true });
 var db = mongoose.connection;
-
 // import schema
 const schema = require("./loginSchema");
 const userLogin = schema.userLogin;
@@ -24,26 +21,19 @@ const userLogin = schema.userLogin;
 var friendAddedschema = new mongoose.Schema({
     usercontact: { type: String, required: true },
     friendName: { type: String, required: true },
-    friendContact:{type:String,unique:true}
+    friendContact: { type: String, unique: true }
 });
 
 var friendAdded = mongoose.model('friendAdded', friendAddedschema);
 
 app.post('/friendAdded', function (req, res) {
-    console.log("yahahahaa friend addede me");
-   
+
     var myDataFriends = friendAdded({
         usercontact: req.body.contact,
         friendName: req.body.friendName,
-        friendContact:req.body.friendContact
+        friendContact: req.body.friendContact
     });
-    console.log(myDataFriends.usercontact);
-    console.log("friendname");
-    console.log(myDataFriends.friendName);
-    // console.log(friendContact);
-    db.collection('usersignups').update( {'contact':myDataFriends.usercontact},{ $push: { 'friends': myDataFriends } },function(err,c){
-        // console.log(c);
-        console.log("****************************");
+    db.collection('usersignups').update({ 'contact': myDataFriends.usercontact }, { $push: { 'friends': myDataFriends } }, function (err, c) {
         res.send(
             {
                 "tag": "All rights are reserved by Aayushi",
@@ -52,34 +42,30 @@ app.post('/friendAdded', function (req, res) {
             }
         );
     });
-  
+
 });
 
 //----------------------------------------------User SignUp-----------------------------------------------------------
 
 var userSignUpschema = new mongoose.Schema({
-    name: { type: String, required: true } ,
-    contact: { type: String, required: true ,unique: true},
+    name: { type: String, required: true },
+    contact: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    friends:{type:Array}
+    friends: { type: Array }
 });
 
 var userSignUp = mongoose.model('userSignUp', userSignUpschema);
 
 app.post('/userSignUp', function (req, res) {
-    console.log("yahahahaa");
-    console.log(req.body);
     var myData = userSignUp({
         name: req.body.name,
         contact: req.body.contact,
         password: req.body.password,
-        friends:req.body.friends
+        friends: req.body.friends
     });
 
     db.collection('usersignups').insertOne(myData, function (err, collection) {
         if (err) {
-            console.log(err);
-            console.log("error in new");
             res.send(
                 {
                     "tag": "All rights are reserved by Aayushi",
@@ -88,7 +74,6 @@ app.post('/userSignUp', function (req, res) {
                 }
             );
         } else {
-            console.log("Record inserted Successfully");
             res.send(
                 {
                     "tag": "All rights are reserved by Aayushi",
@@ -98,7 +83,7 @@ app.post('/userSignUp', function (req, res) {
             );
         }
     });
-}); 
+});
 
 //-----------------------------------------------User Login-----------------------------------------------
 
@@ -111,13 +96,9 @@ app.post('/userSignUp', function (req, res) {
 
 
 app.post('/userLogin', function (req, res) {
-console.log(req);
     db.collection('usersignups').findOne({ contact: req.body.contact }, function (err, user) {
-        console.log(user);
-        console.log("hahhahahah");
-        
+
         if (user === null) {
-            console.log("login invalid...")
             res.send(
                 {
                     "tag": "All rights are reserved by Aayushi",
@@ -126,24 +107,22 @@ console.log(req);
                 }
             );
         } else if (user.contact === req.body.contact && user.password === req.body.password) {
-            console.log("sab badiya");
             res.send(
                 {
                     "tag": "All rights are reserved by Aayushi",
                     "code": "200",
-                    "data": {"name":user.name,"status":"Success"},
+                    "data": { "name": user.name, "status": "Success" },
                 }
             );
         } else {
-            console.log("Credentials wrong");
             res.send(
                 {
                     "tag": "All rights are reserved by Aayushi",
                     "code": "503",
                     "data": "Failed"
                 }
-            );  
-    }
+            );
+        }
     });
 });
 
@@ -155,106 +134,52 @@ var getfriendSchema = new mongoose.Schema({
 
 var getfriend = mongoose.model('getfriend', getfriendSchema);
 
-app.post('/getfriends',function(req,res){
-    console.log("request---------------------------------------------------------------");
-    console.log(req.body.rr);
-// res.send("ok");
-    // console.log(getContactFriend);
-    // console.log(req.body);
-    db.collection('usersignups').findOne({contact:req.body.rr},function(err,filess){
-        if(err){
+app.post('/getfriends', function (req, res) {
+    // res.send("ok");
+    db.collection('usersignups').findOne({ contact: req.body.rr }, function (err, filess) {
+        if (err) {
             res.send('errors1');
-            console.log("error hai")
         }
-        // console.log(filess.friends);
         res.json(filess);
     });
 })
 
-io.on('connection', function(socket) {
-    console.log(socket.id);
-    // connectedUsers[USER_NAME_HERE] = socket;
-    console.log("connecion");
-    // socket.emit('socketID',socket.id);
-    // We're connected to someone now. Let's listen for events from them
-   var roomNaamFriend;
-   var yourRoom;
-    users=[];
+io.on('connection', function (socket) {
+    var roomNaamFriend;
+    var yourRoom;
+    users = [];
     var x;
     var y;
-    // socket.on('setUsername', function(data) {
-    //           console.log(data);
-    //             if(users.indexOf(data) > -1) {
-    //             console.log(users.indexOf(data));
-    //             socket.emit('userExists', data + ' username is taken! Try some other username.');
-    //           } else {
-    //              users.push(data);
-    //              console.log(users.indexOf(data));
-    //              socket.emit('userSet', {username: data});
-    //           }
-    //        });
 
-   socket.on('addToRoom', function(data) {
-    roomNaamFriend= data.friendRoom;
-    yourRoom=data.yourRoom;
-    // roomNaam=roomName;
-    console.log("frined room---");
-    console.log(roomNaamFriend);
-    console.log("my room---");
-    console.log(yourRoom);
-    socket.join(yourRoom);
-    // x= roomName.slice(0,10);
-   
-    // console.log(x);
-    //  y = roomName.slice(10,20);
-    // console.log(y);
-    // console.log(x+y);
+    socket.on('addToRoom', function (data) {
+        roomNaamFriend = data.friendRoom;
+        yourRoom = data.yourRoom;
+        // roomNaam=roomName;
+        socket.join(yourRoom);
+    });
 
-     console.log("hdsfc");
+    socket.on('typing', function (data) {
+        io.sockets.in(roomNaamFriend).emit('showtyping', data);
+    });
 
-});
-
-socket.on('typing',function(data){
-    console.log(roomNaamFriend);
-    console.log(data);  
-    console.log("server side typing");
-
-    // console.log(y+x);
-    // console.log(x+y);
-//    io.sockets.to(roomNaamFriend).to(yourRoom).emit('showtyping', data);
-io.sockets.in(roomNaamFriend).emit('showtyping',data);
-    // io.sockets.to(y+x).to(x+y).emit('showtyping', data);
-
-});
-socket.on('Stoptyping',function(data){
-    console.log(data);  
-    // console.log(y+x);
-    // socket.emit('hidetyping', data);
-    io.sockets.in(roomNaamFriend).emit('hidetyping',data);
-    console.log("server side stoptyping");
-    
-});
+    socket.on('Stoptyping', function (data) {
+        io.sockets.in(roomNaamFriend).emit('hidetyping', data);
+    });
 
 
-  socket.on('msg', function(data) {
+    socket.on('msg', function (data) {
         //Send message to everyone
-        console.log("phle kaha kaha??");
-        console.log(roomNaamFriend);
-        console.log(yourRoom);
-        // io.sockets.to(x+y).to(y+x).emit('newmsg', data);
         io.sockets.to(roomNaamFriend).to(yourRoom).emit('newmsg', data);
-        console.log("bas ho gya")
-     });
+    });
 
-socket.on('disconnect', function() {
-    console.log('Client disconnected.');
-});
+    socket.on('disconnect', function () {
+        console.log('Client disconnected.');
+    });
 });
 
-http.listen(3000, function() {
+http.listen(3000, function () {
     console.log('listening on *:3000');
- });
-
+});
 
 
 
