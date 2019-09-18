@@ -87,14 +87,6 @@ app.post('/userSignUp', function (req, res) {
 
 //-----------------------------------------------User Login-----------------------------------------------
 
-// var userLoginSchema = new mongoose.Schema({
-//     contact: { type: String, required: true },
-//     password: { type: String, required: true }
-// });
-
-// var userLogin = mongoose.model('userLogin', userLoginSchema);
-
-
 app.post('/userLogin', function (req, res) {
     db.collection('usersignups').findOne({ contact: req.body.contact }, function (err, user) {
 
@@ -151,6 +143,7 @@ io.on('connection', function (socket) {
     var x;
     var y;
 
+    //add socket to room
     socket.on('addToRoom', function (data) {
         roomNaamFriend = data.friendRoom;
         yourRoom = data.yourRoom;
@@ -158,20 +151,24 @@ io.on('connection', function (socket) {
         socket.join(yourRoom);
     });
 
-    socket.on('typing', function (data) {
-        io.sockets.in(roomNaamFriend).emit('showtyping', data);
-    });
+    // socket.on('typing', function (data) {
+    //     io.sockets.in(roomNaamFriend).emit('showtyping', data);
+    // });
 
-    socket.on('Stoptyping', function (data) {
-        io.sockets.in(roomNaamFriend).emit('hidetyping', data);
-    });
+    // socket.on('Stoptyping', function (data) {
+    //     io.sockets.in(roomNaamFriend).emit('hidetyping', data);
+    // });
 
-
-    socket.on('msg', function (data) {
+//send meessages to rooms
+    socket.on('msg', function (data) {  
+        console.log(roomNaamFriend);
+        console.log(yourRoom);
         //Send message to everyone
+        console.log("herre");
         io.sockets.to(roomNaamFriend).to(yourRoom).emit('newmsg', data);
     });
 
+    //disconnect socket
     socket.on('disconnect', function () {
         console.log('Client disconnected.');
     });
